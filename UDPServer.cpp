@@ -1,38 +1,35 @@
 #include "UDPServer.h"
 
 UDPServer::UDPServer()
-	: m_socket( INVALID_SOCKET )
+	: m_socket( -1 )
 {
-#ifdef _WIN32
-	m_sockServerInfo.sin_addr.s_addr = inet_addr("127.0.0.1");
-#else
-	m_sockServerInfo.sin_addr = inet_aton("127.0.0.1");
-#endif
 	m_sockServerInfo.sin_family = AF_INET;
-	m_sockServerInfo.sin_port = htons(50398);
-	ZeroMemory( &m_sockServerInfo.sin_zero, sizeof(m_sockServerInfo.sin_zero) );
+	m_sockServerInfo.sin_port = htons( 50398 );
+	inet_pton( AF_INET, "127.0.0.1", &m_sockServerInfo.sin_addr );
+
+	memset( &m_sockServerInfo.sin_zero, 0, sizeof(m_sockServerInfo.sin_zero) );
 }
 
 UDPServer::~UDPServer()
 {
-	closesocket( m_socket );
+	close( m_socket );
 }
 
 bool UDPServer::Initialize()
 {
 	// Attempt to create reate an UDP socket
 	m_socket = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
-	if( m_socket == INVALID_SOCKET )
+	if( m_socket == -1 )
 	{
-		m_lastError = WSAGetLastError();
+		m_lastError = errno;
 		return false;
 	}
 	
 	// Attempt to bind a port
-	int result = bind( m_socket, (SOCKADDR*) &m_sockServerInfo, sizeof(m_sockServerInfo) ); 
-	if( result == SOCKET_ERROR )
+	int result = bind( m_socket, (sockaddr*) &m_sockServerInfo, sizeof(m_sockServerInfo) ); 
+	if( result == -1 )
 	{
-		m_lastError = WSAGetLastError();
+		m_lastError = errno;
 		return false;
 	}
 
@@ -41,16 +38,16 @@ bool UDPServer::Initialize()
 
 int UDPServer::GetLastError(){ return m_lastError; }
 
-void UDPServer::ProcessMessages( std::function<bool(std::string)> fun, int nMessages )
+void UDPServer::ProcessMessages( std::function< bool(std::string) > fun, int nMessages )
 {
 	char buffer[1024];
 	int bufferLen = 1024;
-	int clientSockInfoSize = sizeof(m_sockClientInfo);
+	socklen_t clientSockInfoSize = sizeof(m_sockClientInfo);
 	bool quitEarly = false;
 
 	while( !quitEarly && (nMessages < 0 || nMessages--) )
 	{
-		recvfrom( m_socket, buffer, bufferLen, 0, (SOCKADDR*) &m_sockClientInfo, &clientSockInfoSize ); 
+		recvfrom( m_socket, buffer, bufferLen, 0, (sockaddr*) &m_sockClientInfo, &clientSockInfoSize ); 
 		quitEarly = fun( buffer );
 	}
 }
