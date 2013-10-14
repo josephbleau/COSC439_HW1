@@ -8,70 +8,78 @@
 FlightServer::FlightServer( const std::string& filename )
 	: UDPServer()
 	, FlightLoader( filename )
-	, m_messageBuffer()
-	, m_messageTruncated( false )
-{
-}
+{}
 
 FlightServer::~FlightServer()
-{
-}
-
-
-std::string FlightServer::GetAllFlightIDs() const
-{
-	std::string ret;
-
-	for( auto i = m_data.begin(); 
-             i != m_data.end();
-	     ++i )
-	{
-		ret += i->first + ",";
-	}
-	
-	// remove last unneeded ","
-	ret.erase( ret.end()-1 );
-
-	return ret;
-}
+{}
 
 bool FlightServer::RequestHandler( std::string request )
 {
-	// find the end of the message (messages end with |)
-	// if no end is found assume the next message is
-	// a continuation of this one.
-
 	size_t endMarker = request.find("|");
-	if( endMarker == std::string::npos )
-	{
-		m_messageBuffer.append( request );
-		m_messageTruncated = true;
-		return false;
-	}
-
-	// prepend previously truncated message
-	if( m_messageTruncated ) 
-		request.insert( 0, m_messageBuffer );
-
-	m_messageBuffer.clear();
-
 	request = request.substr(0, endMarker);
 
 	// remove whitespace & tokenize
 	std::remove_if( request.begin(), request.end(), isspace ); 
 	std::vector<std::string> tokens = explode(request, ",");
 
-	if( tokens.at(0).compare("FLIGHTINFO") == 0 )
+	bool validFlight = FlightIDExists( tokens.at(0) );
+
+	if( tokens.size() == 1 )
 	{
-		m_messageTruncated = false;
-		std::string flightList = GetAllFlightIDs();
-		Respond( "FLIGHTINFO," + flightList );
+		if( tokens.at(0).compare("FLIGHTINFO") == 0 )
+		{
+			std::string flightList = GetAllFlightIDs();
+			Respond( "FLIGHTINFO," + flightList + "|" );
+			return false;
+		}
 	}
-	else if( FlightIDExists( tokens.at(0) ) )
+	else if( tokens.size() == 2)
 	{
-		// request began with valid flight id
-		m_messageTruncated = false;
+		if( validFlight && tokens.at(1).compare("DETAILS") == 0 )
+		{
+			std::string row = RowAsString( tokens.at(0) );
+			Respond( row + "|" );
+			return false;
+		}
 	}
+	else if( tokens.size() == 3 )
+	{
+		std::stringstream ss;
+		ss << tokens.at(2);
+		int nTickets = 0;
+		ss >> nTickets;
+
+		int availSeats = 0;
+		std::stringstream response;
+
+		if( tokens.at(1).compare("PURCHASEECON") == 0 )
+		{	
+			availSeats = m_data[tokens.at(0)].availEconSeats;
+
+			if( availSeats >= nTickets )
+				m_data[tokens.at(0)].availEconSeats -= nTickets;
+		}
+		else if( tokens.at(1).compare("PURCHASEPREM") == 0 )
+		{
+			availSeats = m_data[tokens.at(0)].availPremSeats;
+
+			if( availSeats >= nTickets )
+				m_data[tokens.at(0)].availPremSeats -= nTickets;
+		}
+
+		if( nTickets > availSeats  )
+			response << tokens.at(0) << ",PURCHASERESPONSE,FAILURE,"
+			 	 << availSeats << "|";
+		else
+			response << tokens.at(0) << ",PURCHASERESPONSE,SUCCESS|";
+
+		Respond( response.str() );
+		return false;
+	}
+
+	// if we haven't handled the request by now
+	// it must have been an invalid request
+	Respond( "MALFORMED_REQUEST" );
 
 	return false;
 }

@@ -63,5 +63,5 @@ void UDPServer::Respond( const std::string& response )
 	socklen_t sockClientLen = sizeof( m_sockClientInfo );
 
 	sendto( m_socket, response.c_str(), response.size(), 0, 
-                (sockaddr*) &m_sockClientInfo, sockClientLen);
+                (sockaddr*) &m_sockClientInfo, sockClientLen );
 }

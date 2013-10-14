@@ -1,5 +1,7 @@
 This document outlines the simple plaintext flight server request protocol.
 
+	Server is run on port 50398, client may use any port.
+
 0. Message buffer is 1024bytes, any message which is truncated will be continued 
    in a new message that begins with "CONT,", this will probably only happen when
    the client requests the flight list (assuming we have a lot of flights entered.)
@@ -27,7 +29,7 @@ This document outlines the simple plaintext flight server request protocol.
 			Flight ID, Premium Capacity, Available Prem. Seats, 
 			Economy Capacity, Available Economy Seats
 
-	[FLIGHTID], PURCHASE, [NUMBER OF SEATS]|
+	[FLIGHTID], [PURCHASEPREM|PURCHASEECON], [NUMBER OF SEATS]|
 
 		This requests a purchase. The server will respond with:
 

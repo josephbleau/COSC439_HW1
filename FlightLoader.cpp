@@ -4,6 +4,7 @@
 
 FlightLoader::FlightLoader( const std::string& filename )
 	: m_data()
+	, m_filename( filename )
 {
 	std::ifstream flightDB( filename );
 
@@ -28,7 +29,6 @@ FlightLoader::FlightLoader( const std::string& filename )
 		{
 			std::stringstream ss; // stringstream for conversions
 			std::string key = tokens.at(0);
-			tokens.erase( tokens.begin() ); // Erase first element (the key)
 			
 			m_data[key]; // default initialize a new FlightInfo
 
@@ -54,6 +54,32 @@ FlightLoader::FlightLoader( const std::string& filename )
 
 FlightLoader::~FlightLoader()
 {
+	// write changes out
+	std::ofstream outfile;
+	outfile.open( m_filename );
+	
+	if( outfile.is_open() )
+	{
+		// write helper comment at top
+		outfile << "#, Flight ID, Prem Capacity, Avail Prem Seats, "
+                        << "Econ Capacity, Avail Econ Seats" << std::endl;
+
+		// write out rows
+		for( auto i = m_data.begin(); 
+		     i != m_data.end();
+		     ++i )
+		{
+			std::string row = RowAsString( i->first );
+			outfile << row << std::endl;
+			std::cout << row << " written." << std::endl;
+		}
+
+		outfile.close();
+	}
+	else
+	{
+		std::cerr << "Couldn't open " << m_filename << " for writing. Changes not saved.";
+	}
 }
 
 bool FlightLoader::FlightIDExists( const std::string& id ) const
@@ -62,9 +88,41 @@ bool FlightLoader::FlightIDExists( const std::string& id ) const
              i != m_data.end();
 	     ++i )
 	{
-		if( i->first.compare( id) == 0 )
+		if( i->first.compare( id ) == 0 )
 			return true;
 	}	
 
 	return false;
 }
+
+std::string FlightLoader::GetAllFlightIDs() const
+{
+	std::string ret;
+
+	for( auto i = m_data.begin(); 
+             i != m_data.end();
+	     ++i )
+	{
+		ret += i->first + ",";
+	}
+	
+	// remove last unneeded ","
+	ret.erase( ret.end()-1 );
+
+	return ret;
+}
+
+std::string FlightLoader::RowAsString( const std::string& id )
+{
+	if( !FlightIDExists( id ) )
+		return "";
+
+	std::stringstream ss;
+	FlightInfo& info = m_data[id];
+
+	ss << id << "," << info.premiumCapacity << "," << info.availPremSeats 
+           << "," << info.econCapacity << "," << info.availEconSeats;
+
+	return ss.str();
+}
+
