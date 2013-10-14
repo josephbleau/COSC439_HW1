@@ -47,7 +47,8 @@ void UDPServer::ProcessMessages( std::function< bool(std::string) > fun, int nMe
 
 	while( !quitEarly && (nMessages < 0 || nMessages--) )
 	{
-		recvfrom( m_socket, buffer, bufferLen, 0, (sockaddr*) &m_sockClientInfo, &clientSockInfoSize ); 
+		recvfrom( m_socket, buffer, bufferLen, 0,  
+                          (sockaddr*) &m_sockClientInfo, &clientSockInfoSize ); 
 		quitEarly = fun( buffer );
 	}
 }
