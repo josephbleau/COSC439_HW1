@@ -1,5 +1,0 @@
-#, Flight ID, Prem Capacity, Avail Prem Seats, Econ Capacity, Avail Econ Seats
-AA789,5,5,30,30
-CP1456,6,6,45,45
-DL123,12,12,120,120
-JAL8012,20,20,230,230
