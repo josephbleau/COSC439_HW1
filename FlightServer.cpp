@@ -42,7 +42,7 @@ bool FlightServer::RequestHandler( std::string request )
 			return false;
 		}
 	}
-	else if( tokens.size() == 3 )
+	else if( validFlight && tokens.size() == 3 )
 	{
 		std::stringstream ss;
 		ss << tokens.at(2);
