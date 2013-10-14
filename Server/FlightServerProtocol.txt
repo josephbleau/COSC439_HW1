@@ -1,0 +1,42 @@
+This document outlines the simple plaintext flight server request protocol.
+
+	Server is run on port 50398, client may use any port.
+
+0. Message buffer is 1024bytes, any message which is truncated will be continued 
+   in a new message that begins with "CONT,", this will probably only happen when
+   the client requests the flight list (assuming we have a lot of flights entered.)
+
+1. All data is sent in plaintext.
+
+2. All requests and responses end with |
+
+3. All messages, either from or to the server must begin with the relevant Flight ID.
+3.a. The only exception to this is in requesting and returning the list of available
+     flights.
+
+4. All requests are comma delimited, spaces are ignored.
+
+6. Below are the following functions available to the client in the form of
+   the message they must send.
+	
+	FLIGHTLIST| to which the server will respond with a comma delimited list of
+	available flight IDs.
+
+
+	[FLIGHTID], DETAILS|
+
+		Returns a comma delimited list containing: 
+			Flight ID, Premium Capacity, Available Prem. Seats, 
+			Economy Capacity, Available Economy Seats
+
+	[FLIGHTID], [PURCHASEPREM|PURCHASEECON], [NUMBER OF SEATS]|
+
+		This requests a purchase. The server will respond with:
+
+		[FLIGHTID], PURCHASERESPONSE, SUCCESS| on a successful transaction
+		
+		or	
+
+		[FLIGHTID],PURCHASERESPONSE,FAILURE,[NUMBER OF SEATS LEFT]| when
+		there aren't enough seats to fufill the request it will return
+		failure and the number of seats available.

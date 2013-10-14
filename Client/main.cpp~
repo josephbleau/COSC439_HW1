@@ -1,0 +1,24 @@
+#include "FlightClient.h"
+
+int main( int argc, char* argv[] )
+{
+	FlightClient client;
+	if( !client.Initialize() )
+	{
+		return 1;
+	}
+
+	client.PrintHello();
+	client.PrintMainMenu();
+
+	// program input loop
+	std::string input;
+	bool running = true;	
+	while( running && std::getline( std::cin, input ) )
+	{
+		// exit
+		if(input.compare("3") == 0)
+			running = false;
+	}
+	return 0;
+}
