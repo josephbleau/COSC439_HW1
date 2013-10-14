@@ -7,6 +7,7 @@ UDPServer::UDPServer()
 	m_sockServerInfo.sin_port = htons( 50398 );
 	inet_pton( AF_INET, "127.0.0.1", &m_sockServerInfo.sin_addr );
 
+	// zero-out the rest of the struct
 	memset( &m_sockServerInfo.sin_zero, 0, sizeof(m_sockServerInfo.sin_zero) );
 }
 
@@ -45,10 +46,22 @@ void UDPServer::ProcessMessages( std::function< bool(std::string) > fun, int nMe
 	socklen_t clientSockInfoSize = sizeof(m_sockClientInfo);
 	bool quitEarly = false;
 
+	// run until quitEarly is true or messages reaches 0 (and is not < 0)
 	while( !quitEarly && (nMessages < 0 || nMessages--) )
 	{
 		recvfrom( m_socket, buffer, bufferLen, 0,  
-                          (sockaddr*) &m_sockClientInfo, &clientSockInfoSize ); 
+                          (sockaddr*) &m_sockClientInfo, &clientSockInfoSize );
+
+		// send received message to our custom handler (passed 
+ 		// in in the form of a std::function) 
 		quitEarly = fun( buffer );
 	}
+}
+
+void UDPServer::Respond( const std::string& response )
+{
+	socklen_t sockClientLen = sizeof( m_sockClientInfo );
+
+	sendto( m_socket, response.c_str(), response.size(), 0, 
+                (sockaddr*) &m_sockClientInfo, sockClientLen);
 }

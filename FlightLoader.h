@@ -17,12 +17,15 @@ struct FlightInfo
 
 class FlightLoader
 {
-	private:
+	protected:
 		std::map< std::string, FlightInfo > m_data;
 
 	public: 
-		FlightLoader( std::string filename );
+		FlightLoader( const std::string& filename );
 		~FlightLoader();
+
+		// returns true if this flight exists, else false
+		bool FlightIDExists( const std::string& id ) const;
 };
 
 #endif

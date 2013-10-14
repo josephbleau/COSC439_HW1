@@ -2,7 +2,7 @@
 
 #include "MiscUtils.h"
 
-FlightLoader::FlightLoader( std::string filename )
+FlightLoader::FlightLoader( const std::string& filename )
 	: m_data()
 {
 	std::ifstream flightDB( filename );
@@ -54,4 +54,17 @@ FlightLoader::FlightLoader( std::string filename )
 
 FlightLoader::~FlightLoader()
 {
+}
+
+bool FlightLoader::FlightIDExists( const std::string& id ) const
+{
+	for( auto i = m_data.begin(); 
+             i != m_data.end();
+	     ++i )
+	{
+		if( i->first.compare( id) == 0 )
+			return true;
+	}	
+
+	return false;
 }

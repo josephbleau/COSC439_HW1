@@ -28,6 +28,7 @@ public:
 	int GetLastError();
 
 	void ProcessMessages( std::function< bool(std::string) > func, int nMessages = -1 );
+	void Respond( const std::string& response );
 };
 
 #endif
