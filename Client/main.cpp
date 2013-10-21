@@ -8,9 +8,6 @@ int main( int argc, char* argv[] )
 		return 1;
 	}
 
-	client.PrintHello();
-	client.PrintMainMenu();
-
 	client.Run();
 
 	return 0;

@@ -50,24 +50,28 @@ bool FlightServer::RequestHandler( std::string request )
 		ss >> nTickets;
 
 		int availSeats = 0;
+		int prevAvailSeats = 0;
+
 		std::stringstream response;
 
 		if( tokens.at(1).compare("PURCHASEECON") == 0 )
 		{	
 			availSeats = m_data[tokens.at(0)].availEconSeats;
+			prevAvailSeats = availSeats;
 
 			if( availSeats >= nTickets )
-				m_data[tokens.at(0)].availEconSeats -= nTickets;
+				availSeats = m_data[tokens.at(0)].availEconSeats -= nTickets;
 		}
 		else if( tokens.at(1).compare("PURCHASEPREM") == 0 )
 		{
 			availSeats = m_data[tokens.at(0)].availPremSeats;
+			prevAvailSeats = availSeats;
 
 			if( availSeats >= nTickets )
-				m_data[tokens.at(0)].availPremSeats -= nTickets;
+				availSeats = m_data[tokens.at(0)].availPremSeats -= nTickets;
 		}
 
-		if( nTickets > availSeats  )
+		if( prevAvailSeats == availSeats  )
 			response << tokens.at(0) << ",PURCHASERESPONSE,FAILURE,"
 			 	 << availSeats << "|";
 		else
@@ -79,7 +83,7 @@ bool FlightServer::RequestHandler( std::string request )
 
 	// if we haven't handled the request by now
 	// it must have been an invalid request
-	Respond( "MALFORMED_REQUEST" );
+	Respond( "MALFORMED_REQUEST|" );
 
 	return false;
 }
@@ -91,5 +95,5 @@ void FlightServer::Run()
 	// we need to use bind in order to include our instance. 
 	// C++11 witch-craftery.
 	using namespace std::placeholders;
-	ProcessMessages( std::bind(&FlightServer::RequestHandler, this, _1), 3 );	
+	ProcessMessages( std::bind(&FlightServer::RequestHandler, this, _1), -1 );
 }

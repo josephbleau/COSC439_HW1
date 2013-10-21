@@ -8,13 +8,7 @@
 #include <string>
 #include <vector>
 
-struct FlightInfo
-{
-	int premiumCapacity;
-	int availPremSeats;
-	int econCapacity;
-	int availEconSeats;
-};
+#include "../Shared/FlightInfo.h"
 
 class FlightLoader
 {

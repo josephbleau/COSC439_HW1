@@ -27,6 +27,8 @@ public:
 	bool Initialize();
 	int GetLastError();
 
+	/* Accepts a function as a parameter and calls that function on every packet that
+	 * it receives. */
 	void ProcessMessages( std::function< bool(std::string) > func, int nMessages = -1 );
 	void Respond( const std::string& response );
 };
